@@ -498,7 +498,7 @@ resource "kubernetes_pod" "kong_migration" {
       env {
         name  = "KONG_TRUSTED_IPS"
         value = "0.0.0.0/0,::/0"
-      }
+      } 
       env {
         name  = "KONG_PG_DATABASE"
         value = "kong_db"
