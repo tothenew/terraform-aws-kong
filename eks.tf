@@ -219,87 +219,6 @@ module "load_balancer_controller" {
   settings = local.eks_cluster.lb
 }
 
-resource "kubernetes_ingress_v1" "example_ingress" {
-  depends_on = [
-    module.load_balancer_controller
-  ]
-  metadata {
-    name = "example-ingress"
-    annotations = {
-      "kubernetes.io/ingress.class"                  = "alb"
-      "alb.ingress.kubernetes.io/target-type"        = "ip"
-      "alb.ingress.kubernetes.io/scheme"             = "internet-facing"
-      "alb.ingress.kubernetes.io/load-balancer-name" = "${local.eks_cluster.name}-alb"
-      "alb.ingress.kubernetes.io/healthcheck-path"   = "/health"
-      "alb.ingress.kubernetes.io/listen-ports"       = "[{\"HTTP\": 80}]"
-      "alb.ingress.kubernetes.io/group.name"         = "eks-prod-alb"
-      "alb.ingress.kubernetes.io/subnets"            = "subnet-0257e8262a7017948,subnet-062a9cb5ea10455da,subnet-06b6a7e3c22de35ca"
-    }
-  }
-
-  spec {
-    rule {
-      http {
-        path {
-          path = "/app-1*"
-          backend {
-            service {
-              name = "myapp-1"
-              port {
-                number = 80
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-resource "kubernetes_service_v1" "example" {
-  depends_on = [
-    module.load_balancer_controller
-  ]
-  metadata {
-    name = "myapp-1"
-  }
-  spec {
-    selector = {
-      app = kubernetes_pod.example.metadata.0.labels.app
-    }
-    session_affinity = "ClientIP"
-    port {
-      port        = 80
-      target_port = 80
-    }
-
-    type = "NodePort"
-  }
-}
-
-
-resource "kubernetes_pod" "example" {
-  depends_on = [
-    module.load_balancer_controller
-  ]
-  metadata {
-    name = "terraform-example"
-    labels = {
-      app = "myapp-1"
-    }
-  }
-
-  spec {
-    container {
-      image = "nginx:latest"
-      name  = "example"
-
-      port {
-        container_port = 80
-      }
-    }
-  }
-}
 
 resource "helm_release" "ingress" {
   name      = "helm-ing"
@@ -325,7 +244,7 @@ resource "kubernetes_config_map" "kong-config" {
   }
 }
 
-resource "helm_release" "kong1" {
+resource "helm_release" "kong" {
   depends_on = [
     resource.kubernetes_pod.kong_migration
   ]
@@ -405,7 +324,7 @@ resource "helm_release" "konga" {
 # k run kong --image=saifahmadttn/kong:2.7.0 --env=KONG_PG_USER=root --env=KONG_PG_DATABASE=kong_db --env=KONG_DATABASE=postgres --env=KONG_PG_PASSWORD=b9909FTArBOsPoOlYERWC8QMex9KrIEXll --env=KONG_PG_HOST=kong-database-0.c8m4uwvxecdh.ap-south-1.rds.amazonaws.com --command -- kong migrations bootstrap
 
 module "create_database" {
-  source = "git::https://github.com/tothenew/terraform-aws-rds.git?ref=v0.0.1"
+  source = "git::https://github.com/ayushme001/terraform-aws-rds.git"
 
   create_rds    = false
   create_aurora = true
