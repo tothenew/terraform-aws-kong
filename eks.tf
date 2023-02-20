@@ -6,17 +6,17 @@ locals {
     max_size                 = 4
     desired_size             = 3
     name                     = "eks-self-managed-ayush-1"
-    environment_name = "dev"
+    environment_name         = "dev"
     version                  = "1.24"
     is_mixed_instance_policy = true
-    vpc_id     = "vpc-0cdbbbd4cedcea769"
-    vpc_cidr   = ["172.31.0.0/16"]
-    subnet_ids = ["subnet-0257e8262a7017948", "subnet-062a9cb5ea10455da", "subnet-06b6a7e3c22de35ca"]
+    vpc_id                   = "vpc-0cdbbbd4cedcea769"
+    vpc_cidr                 = ["172.31.0.0/16"]
+    subnet_ids               = ["subnet-0257e8262a7017948", "subnet-062a9cb5ea10455da", "subnet-06b6a7e3c22de35ca"]
     instance_type            = "t3a.medium"
     instances_distribution = {
-      on_demand_base_capacity  = 0
-      on_demand_percentage_above_base_capacity     = 20
-      spot_allocation_strategy = "capacity-optimized"
+      on_demand_base_capacity                  = 0
+      on_demand_percentage_above_base_capacity = 20
+      spot_allocation_strategy                 = "capacity-optimized"
     }
     override = [
       {
@@ -43,19 +43,19 @@ locals {
     }
     cluster_security_group = {
       cluster_rule_ingress = {
-        description                = "cluster SG"
-        protocol                   = "tcp"
-        from_port                  = 0
-        to_port                    = 65535
-        type                       = "ingress"
+        description = "cluster SG"
+        protocol    = "tcp"
+        from_port   = 0
+        to_port     = 65535
+        type        = "ingress"
         cidr_blocks = ["0.0.0.0/0"]
       },
       cluster_rule_egress = {
-        description                = "cluster SG"
-        protocol                   = "tcp"
-        from_port                  = 0
-        to_port                    = 65535
-        type                       = "egress"
+        description = "cluster SG"
+        protocol    = "tcp"
+        from_port   = 0
+        to_port     = 65535
+        type        = "egress"
         cidr_blocks = ["0.0.0.0/0"]
       }
     }
@@ -69,11 +69,11 @@ locals {
         cidr_blocks = ["0.0.0.0/0"]
       }
       node_rules_egress = {
-        description                   = "node SG"
-        protocol                      = "tcp"
-        from_port                     = 0
-        to_port                       = 65535
-        type                          = "egress"
+        description = "node SG"
+        protocol    = "tcp"
+        from_port   = 0
+        to_port     = 65535
+        type        = "egress"
         cidr_blocks = ["0.0.0.0/0"]
       }
     }
@@ -85,14 +85,14 @@ locals {
       # aws-ebs-csi-driver = {
       #   resolve_conflicts = "OVERWRITE"
       # },
-      kube-proxy= {
+      kube-proxy = {
         resolve_conflicts = "OVERWRITE"
       }
     }
     lb = {
       image = {
-        repository= "public.ecr.aws/eks/aws-load-balancer-controller"
-        tag= "v2.4.6"
+        repository = "public.ecr.aws/eks/aws-load-balancer-controller"
+        tag        = "v2.4.6"
       }
     }
   }
@@ -105,7 +105,7 @@ provider "kubernetes" {
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
     command     = "aws"
-    args = ["eks", "get-token", "--cluster-name", local.eks_cluster.name]
+    args        = ["eks", "get-token", "--cluster-name", local.eks_cluster.name]
   }
 }
 
@@ -116,7 +116,7 @@ provider "helm" {
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
-      args = ["eks", "get-token", "--cluster-name", local.eks_cluster.name]
+      args        = ["eks", "get-token", "--cluster-name", local.eks_cluster.name]
     }
   }
 }
@@ -134,7 +134,7 @@ provider "helm" {
 # }
 
 module "eks_cluster" {
-  source = "git::https://github.com/tothenew/terraform-aws-eks.git"
+  source          = "git::https://github.com/tothenew/terraform-aws-eks.git"
   cluster_name    = local.eks_cluster.name
   cluster_version = try(local.eks_cluster.version, "1.24")
 
@@ -166,19 +166,19 @@ module "eks_cluster" {
     #   name = local.eks_cluster.name
     # }
     mixed = {
-      name = local.eks_cluster.name
+      name         = local.eks_cluster.name
       min_size     = try(local.eks_cluster.min_size, 2)
       max_size     = try(local.eks_cluster.max_size, 4)
       desired_size = try(local.eks_cluster.min_size, 2)
       tags = {
-        "k8s.io/cluster-autoscaler/enabled" = "true"
+        "k8s.io/cluster-autoscaler/enabled"                   = "true"
         "k8s.io/cluster-autoscaler/${local.eks_cluster.name}" = "owned"
       }
       create_security_group          = true
       security_group_name            = local.eks_cluster.name
       security_group_use_name_prefix = true
       security_group_description     = "Self managed NodeGroup SG"
-      security_group_rules = local.eks_cluster.node_security_group
+      security_group_rules           = local.eks_cluster.node_security_group
 
       # pre_bootstrap_user_data = <<-EOT
       #   TOKEN=`curl -s  -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
@@ -197,11 +197,11 @@ module "eks_cluster" {
         sudo systemctl start amazon-ssm-agent
         EOT
 
-      block_device_mappings = "${local.eks_cluster.block_device_mappings}"
+      block_device_mappings      = "${local.eks_cluster.block_device_mappings}"
       use_mixed_instances_policy = "${local.eks_cluster.is_mixed_instance_policy}"
       mixed_instances_policy = {
         instances_distribution = "${local.eks_cluster.instances_distribution}"
-        override = "${local.eks_cluster.override}"
+        override               = "${local.eks_cluster.override}"
       }
     }
   }
@@ -238,18 +238,18 @@ resource "kubernetes_ingress_v1" "example_ingress" {
   }
 
   spec {
-      rule {
-        http {
-         path {
-           path = "/app-1*"
-           backend {
-             service {
-               name = "myapp-1"
-               port {
-                 number = 80
-               }
-             }
-           }
+    rule {
+      http {
+        path {
+          path = "/app-1*"
+          backend {
+            service {
+              name = "myapp-1"
+              port {
+                number = 80
+              }
+            }
+          }
         }
       }
     }
@@ -302,11 +302,10 @@ resource "kubernetes_pod" "example" {
 }
 
 resource "helm_release" "ingress" {
-  name       = "helm-ing"
-  namespace   = "default"
-#  repository = "https://charts.bitnami.com/bitnami"
-  chart      = "./helm/alb-ingress"
-  version    = "6.0.1"
+  name      = "helm-ing"
+  namespace = "default"
+  chart     = "./helm/alb-ingress"
+  version   = "6.0.1"
 
   values = [
     "${file("./helm/alb-ingress/values.yaml")}"
@@ -317,6 +316,9 @@ resource "kubernetes_config_map" "kong-config" {
   metadata {
     name = "kong-config"
   }
+  depends_on = [
+    module.create_database
+  ]
 
   data = {
     "nginx_kong.lua" = "${file("./helm/configmap.yml")}"
@@ -327,31 +329,71 @@ resource "helm_release" "kong1" {
   depends_on = [
     resource.kubernetes_pod.kong_migration
   ]
-  name       = "kong1"
+  name    = "kong"
   timeout = 180
   # namespace   = "default"
-#  repository = "https://charts.bitnami.com/bitnami"
-  chart      = "./helm/kong"
-  # version    = "6.0.1"
-  # set {
-  #   name  = "config"
-  #   value = file("./helm/configmap.conf")
-  # }
+  chart = "./helm/kong"
+  set {
+    name  = "deployment.containers[0].env[1].name"
+    value = "KONG_PG_HOST"
+  }
+  set {
+    name  = "deployment.containers[0].env[1].value"
+    value = module.create_database.endpoint
+  }
+  set {
+    name  = "deployment.containers[0].env[2].name"
+    value = "KONG_PG_USER"
+  }
+  set {
+    name  = "deployment.containers[0].env[2].value"
+    value = module.create_database.username
+  }
+  set {
+    name  = "deployment.containers[0].env[3].name"
+    value = "KONG_PG_PASSWORD"
+  }
+  set {
+    name  = "deployment.containers[0].env[3].value"
+    value = module.create_database.password
+  }
   values = [
     "${file("./helm/kong-values.yaml")}"
   ]
 }
 
-resource "helm_release" "konga1" {
+resource "helm_release" "konga" {
   depends_on = [
-    helm_release.kong1
+    helm_release.kong
   ]
-  name       = "konga1"
+  name = "konga"
   # namespace   = "default"
-#  repository = "https://charts.bitnami.com/bitnami"
-  chart      = "./helm/konga"
-  # version    = "6.0.1"
+  chart   = "./helm/konga"
   timeout = 180
+  set {
+    name  = "deployment.containers[0].env[1].name"
+    value = "DB_HOST"
+  }
+  set {
+    name  = "deployment.containers[0].env[1].value"
+    value = module.create_database.endpoint
+  }
+  set {
+    name  = "deployment.containers[0].env[3].name"
+    value = "DB_PASSWORD"
+  }
+  set {
+    name  = "deployment.containers[0].env[3].value"
+    value = module.create_database.password
+  }
+  set {
+    name  = "deployment.containers[0].env[2].name"
+    value = "DB_USER"
+  }
+  set {
+    name  = "deployment.containers[0].env[2].value"
+    value = module.create_database.username
+  }
   values = [
     "${file("./helm/konga-values.yaml")}"
   ]
@@ -363,31 +405,32 @@ resource "helm_release" "konga1" {
 # k run kong --image=saifahmadttn/kong:2.7.0 --env=KONG_PG_USER=root --env=KONG_PG_DATABASE=kong_db --env=KONG_DATABASE=postgres --env=KONG_PG_PASSWORD=b9909FTArBOsPoOlYERWC8QMex9KrIEXll --env=KONG_PG_HOST=kong-database-0.c8m4uwvxecdh.ap-south-1.rds.amazonaws.com --command -- kong migrations bootstrap
 
 module "create_database" {
-  source              = "git::https://github.com/tothenew/terraform-aws-rds.git?ref=v0.0.1"
+  source = "git::https://github.com/tothenew/terraform-aws-rds.git?ref=v0.0.1"
 
-  create_rds     = false
+  create_rds    = false
   create_aurora = true
 
-  subnet_ids       = local.eks_cluster.subnet_ids
-  vpc_id           = local.eks_cluster.vpc_id
-  vpc_cidr         = local.eks_cluster.vpc_cidr
+  subnet_ids = local.eks_cluster.subnet_ids
+  vpc_id     = local.eks_cluster.vpc_id
+  vpc_cidr   = local.eks_cluster.vpc_cidr
 
-  publicly_accessible = true
-  allocated_storage = 10
-  max_allocated_storage = 20
-  engine = "aurora-postgresql"
-  engine_version = "11.18"
-  instance_class = "db.t3.medium"
-  database_name = "mydb"
-  username   = "root"
-  identifier = "kong-database"
-  apply_immediately = false
-  storage_encrypted = false
-  multi_az = false
-  db_subnet_group_id = "kong-rds"
-  deletion_protection = false
-  auto_minor_version_upgrade = false
-  count_aurora_instances = 1
+  publicly_accessible                    = true
+  allocated_storage                      = 10
+  max_allocated_storage                  = 20
+  engine                                 = "aurora-postgresql"
+  engine_version                         = "11.18"
+  instance_class                         = "db.t3.medium"
+  database_name                          = "postgres"
+  username                               = "root"
+  identifier                             = "kong-database"
+  apply_immediately                      = false
+  port                                   = 5432
+  storage_encrypted                      = false
+  multi_az                               = false
+  db_subnet_group_id                     = "kong-rds"
+  deletion_protection                    = false
+  auto_minor_version_upgrade             = false
+  count_aurora_instances                 = 1
   serverlessv2_scaling_configuration_max = 1.0
   serverlessv2_scaling_configuration_min = 0.5
   common_tags = {
@@ -397,50 +440,22 @@ module "create_database" {
   environment = "dev"
 }
 
-data "aws_ssm_parameter" "rds_host" {
-  depends_on = [
-    module.create_database
-  ]
-  name = "/dev/RDS/HOST"
-}
-
-data "aws_ssm_parameter" "rds_password" {
-  depends_on = [
-    module.create_database
-  ]
-  name = "/dev/RDS/PASSWORD"
-}
-
-data "aws_ssm_parameter" "rds_endpoint" {
-  depends_on = [
-    module.create_database
-  ]
-  name = "/dev/RDS/ENDPOINT"
-}
-
-data "aws_ssm_parameter" "rds_user" {
-  depends_on = [
-    module.create_database
-  ]
-  name = "/dev/RDS/USER"
-}
-
-terraform {
-  required_version = ">= 1.3.0"
-  required_providers {
-    postgresql = { # This line is what needs to change.
-      source = "cyrilgdn/postgresql"
-      version = "1.15.0"
-    }
-  }
-}
+# terraform {
+#   required_version = ">= 1.3.0"
+#   required_providers {
+#     postgresql = { # This line is what needs to change.
+#       source = "cyrilgdn/postgresql"
+#       version = "1.15.0"
+#     }
+#   }
+# }
 
 provider "postgresql" {
-  host            = "kong-database.cluster-c8m4uwvxecdh.ap-south-1.rds.amazonaws.com"
-  port            = 5432
+  host            = module.create_database.endpoint
+  port            = module.create_database.port
   database        = "postgres"
-  username        = "root"
-  password        = "vT3JUoJmPqUVBPuWZ4NtCiFnCH6JSyXPz4"
+  username        = module.create_database.username
+  password        = module.create_database.password
   connect_timeout = 15
 }
 
@@ -448,19 +463,19 @@ resource "postgresql_database" "kong" {
   depends_on = [
     module.create_database
   ]
-  name     = "kong_db"
+  name = "kong_db"
 }
 
 resource "postgresql_database" "konga" {
   depends_on = [
     module.create_database
   ]
-  name     = "konga_db"
+  name = "konga_db"
 }
 
 resource "kubernetes_pod" "kong_migration" {
   depends_on = [
-    kubernetes_config_map.kong-config
+    postgresql_database.kong
   ]
   metadata {
     name = "kong-migration"
@@ -477,15 +492,15 @@ resource "kubernetes_pod" "kong_migration" {
       }
       env {
         name  = "KONG_PG_HOST"
-        value = data.aws_ssm_parameter.rds_endpoint.value
+        value = module.create_database.endpoint
       }
       env {
         name  = "KONG_PG_USER"
-        value = data.aws_ssm_parameter.rds_user.value
+        value = module.create_database.username
       }
       env {
         name  = "KONG_PG_PASSWORD"
-        value = data.aws_ssm_parameter.rds_password.value
+        value = module.create_database.password
       }
       env {
         name  = "KONG_ADMIN_LISTEN"
@@ -498,12 +513,12 @@ resource "kubernetes_pod" "kong_migration" {
       env {
         name  = "KONG_TRUSTED_IPS"
         value = "0.0.0.0/0,::/0"
-      } 
+      }
       env {
         name  = "KONG_PG_DATABASE"
         value = "kong_db"
       }
-      command = [ "kong", "migrations", "bootstrap" ]
+      command = ["kong", "migrations", "bootstrap"]
       port {
         container_port = 8001
       }
