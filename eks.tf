@@ -276,6 +276,11 @@ resource "helm_release" "kong" {
     name  = "deployment.containers[0].env[3].value"
     value = module.create_database.password
   }
+  set {
+    name  = "ingress.subnet"
+    value = local.eks_cluster.subnet_ids
+  }
+
   values = [
     "${file("./helm/kong-values.yaml")}"
   ]
@@ -312,6 +317,10 @@ resource "helm_release" "konga" {
   set {
     name  = "deployment.containers[0].env[2].value"
     value = module.create_database.username
+  }
+  set {
+    name  = "ingress.subnet"
+    value = local.eks_cluster.subnet_ids
   }
   values = [
     "${file("./helm/konga-values.yaml")}"

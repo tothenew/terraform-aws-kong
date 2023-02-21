@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/load-balancer-name: {{ .Values.ingress.ingName }}-ingress
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/subnets: {{ .Values.ingress.subnet }}
+    alb.ingress.kubernetes.io/target-type: ip
+    kubernetes.io/ingress.class: alb
+    meta.helm.sh/release-name: helm-ing
+    meta.helm.sh/release-namespace: {{ $.Release.Namespace }}
+  finalizers:
+  - ingress.k8s.aws/resources
+  generation: 7
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: {{ .Values.ingress.ingName }}-ingress
+  namespace: {{ $.Release.Namespace }}
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          service:
+            name: svc-konga
+            port:
+              number: 80
+        path: /
+        pathType: Prefix

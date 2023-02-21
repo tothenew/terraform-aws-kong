@@ -1,47 +1,26 @@
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: {{ .Values.name }}-ingress
-#   namespace: {{ $.Release.Namespace }}
-#   labels:
-#     app: {{ .Values.name }}-ingress
-
-
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: kong-ingress
-  namespace: default
+  name: {{ .Values.ingress.ingName }}-ingress
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app: {{ .Values.ingress.ingName }}-ingress
   annotations:
-      konghq.com/strip-path: 'true'
-  #    konghq.com/protocols: 'https'
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/subnets: {{ .Values.ingress.subnet }}
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    # alb.ingress.kubernetes.io/healthcheck-port: 80
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
 spec:
-  # ingressClassName: kong
   rules:
-  - http:
-      paths:
-      - backend:
-          service:
-            name: nginx
-            port:
-              number: 80
-        path: /nginx
-        pathType: Prefix
-  - http:
-      paths:
-      - backend:
-          service:
-            name: myapp-1
-            port:
-              number: 80
-        path: /myapp
-        pathType: Prefix
-  - http:
-      paths:
-      - backend:
-          service:
-            name: svc-konga1
-            port:
-              number: 80
-        path: /konga
-        pathType: Prefix
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: svc-kong
+                port:
+                  number: 80
