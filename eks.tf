@@ -278,7 +278,7 @@ resource "helm_release" "kong" {
   }
   set {
     name  = "ingress.subnet"
-    value = local.eks_cluster.subnet_ids
+    value = "${join("\\,", local.eks_cluster.subnet_ids)}"
   }
 
   values = [
@@ -320,7 +320,7 @@ resource "helm_release" "konga" {
   }
   set {
     name  = "ingress.subnet"
-    value = local.eks_cluster.subnet_ids
+    value = "${join("\\,", local.eks_cluster.subnet_ids)}"
   }
   values = [
     "${file("./helm/konga-values.yaml")}"
