@@ -220,16 +220,16 @@ module "load_balancer_controller" {
 }
 
 
-resource "helm_release" "ingress" {
-  name      = "helm-ing"
-  namespace = "default"
-  chart     = "./helm/alb-ingress"
-  version   = "6.0.1"
+# resource "helm_release" "ingress" {
+#   name      = "helm-ing"
+#   namespace = "default"
+#   chart     = "./helm/alb-ingress"
+#   version   = "6.0.1"
 
-  values = [
-    "${file("./helm/alb-ingress/values.yaml")}"
-  ]
-}
+#   values = [
+#     "${file("./helm/alb-ingress/values.yaml")}"
+#   ]
+# }
 
 resource "kubernetes_config_map" "kong-config" {
   metadata {
